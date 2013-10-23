@@ -57,6 +57,7 @@ module Rubabel
         nmol = self.dup
         #puts "input atoms: #{[leaving_oxygen, attacked_carbon, anionic_oxygen]}"
 
+        # initialize product atoms prior to modifications
         leaving_group_oxygen = nmol.atom(leaving_oxygen.id)
         product_carbon_to_link = nmol.atom(attacked_carbon.id)
         attacking_oxygen = nmol.atom(anionic_oxygen.id)
