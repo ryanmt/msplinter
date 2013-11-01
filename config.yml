@@ -1,0 +1,37 @@
+---
+:rule_group_map: 
+  :cod:
+  - :alcohol
+  - :peroxide
+  :paoc:
+  - :ester
+  - :phosphate
+  :codoo:
+  - :carbonyl
+  :oxe:
+  - :oxygen
+  :oxepd:
+  - :oxygen
+  - :phosphate
+  :oxh:
+  - :oxygen
+  - :no-phosphate
+  :oxhpd:
+  - :oxygen
+  - :phosphate
+:smart_search_map:
+  :alcohol: '[#6][OX2H]'
+  :phenol: '[OX2H][cX3]:[c]'
+  :amide: '[NX3][CX3](=[OX1])[#6]'
+  :primary_alcohol: '[#6H2][OX2H]'
+  :secondary_alcohol: '[#6H][OX2H]'
+  :tertiary_alcohol: '[#6H0][OX2H]'
+  :aldehyde: '[CX3H1](=O)[#6]'
+  :carbonyl: '[CX3](=[OX1])C'
+  :ester: '[#6][CX3](=O)[OX2H0][#6]'
+  :amine: '[NX3;H2;!$(NC=[!#6]);!$(NC#[!#6])][#6]'
+  :primary_amine: '[NX3;H2,H1;!$(NC=O)]'
+  :carboxylic_acid: '[CX3](=O)[OX2H1]'
+  :carboxylate: '[CX3](=O)[O-]'
+  :ether: '[OD2]([#6])[#6]'
+  :peroxide: '[OX2,OX1-][OX2,OX1-]'
