@@ -1,14 +1,16 @@
 require 'set'
+require 'rubabel/fragment_set'
 
 module Rubabel
   class Molecule
     module Fragmentable
 
       #RULES = Set[:cod, :codoo, :oxe, :oxepd, :oxh]
-      RULES = Set[:cod, :codoo, :oxe, :oxepd, :oxh, :oxhpd, :paoc] # :paoc is Phosphate Attack On Carbonyl Carbon
+      RearrangementRules = Set[:paoc]
+      RULES = Set[:cod, :codoo, :oxe, :oxepd, :oxh, :oxhpd] # :paoc is Phosphate Attack On Carbonyl Carbon
 
       DEFAULT_OPTIONS = {
-        rules: RULES - [:paoc],
+        rules: RULES,
         errors: :remove,
         # return only the set of unique fragments
         uniq: false, 
@@ -69,6 +71,8 @@ module Rubabel
         leaving_group_oxygen.charge=-1
         #4
         nmol.add_bond!(product_carbon_to_link, attacking_oxygen)
+        #nmol.split
+        p nmol.split
         nmol.split
       end
 
@@ -161,7 +165,6 @@ module Rubabel
           self.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", only_uniqs).each do |arr|
             puts "OCCCO SMART search"
             #self.write_file("paoc/search.svg", add_atom_index: true)
-            p arr
             puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
             puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
             puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
@@ -170,19 +173,16 @@ module Rubabel
           self.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , only_uniqs).each do |arr|
             puts "OCCO SMART search"
             #self.write_file("paoc/search2.svg", add_atom_index: true)
-            p arr
             puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
             puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
             puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
             fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last)
-            p fragment_sets.size
           end
         end
 
         case opts[:errors]
         when :remove
           fragment_sets.select! {|set| allowable_fragmentation?(set) }
-          p fragment_sets.size
         when :fix
           raise NotImplementedError
         when :ignore  # do nothing
@@ -194,8 +194,34 @@ module Rubabel
           raise NotImplementedError
           #fragment_sets = fragment_sets.uniq_by(&:csmiles)
         end
-
         fragment_sets
+      end
+      #
+      # rearrangements to generate subsequent fragments from a list of fragments
+      def rearrange(fragment_arrays, opts = {})
+        opts = {rules: RearrangementRules, only_uniq: true}.merge(opts)
+        fragment_sets = []
+        fragment_arrays.flatten(1).map do |arr|
+          puts "ARR: #{arr}"
+          if opts[:rules].any? {|r| [:paoc].include?(r) }
+            arr.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", opts[:only_uniqs]).each do |arr|
+              puts "OCCCO SMART search"
+              #self.write_file("paoc/search.svg", add_atom_index: true)
+              puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
+              puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
+              puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
+              fragment_sets << FragmentSet.new(phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last))
+            end
+            arr.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , opts[:only_uniqs]).each do |arr|
+              puts "OCCO SMART search"
+              #self.write_file("paoc/search2.svg", add_atom_index: true)
+              puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
+              puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
+              puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
+              fragment_sets << FragmentSet.new(phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last))
+            end
+          end
+        end
       end
     end
     include Fragmentable

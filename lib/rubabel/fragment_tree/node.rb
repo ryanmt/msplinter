@@ -1,5 +1,5 @@
 module Rubabel
-  class FragmentationTree
+  class FragmentTree
     class Fragment
       attr_accessor :parent, :root, :molecule, :child
       MinimumSizeForFragmentation = 40.0
