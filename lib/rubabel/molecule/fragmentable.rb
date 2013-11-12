@@ -204,18 +204,12 @@ module Rubabel
         fragment_arrays.flatten(1).map do |sets|
           sets.molecules.map do |molecule|
             if opts[:rules].any? {|r| [:paoc].include?(r) }
-              # arr.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", opts[:only_uniqs]).each do |arr|  # version with only one anionic oxygen
+              # molecule.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", opts[:only_uniqs]).each do |atoms|  # version with only one anionic oxygen
               molecule.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])([O-])[O-]", opts[:only_uniqs]).each do |atoms|
-#                puts "Ester Oxygen" + atoms[2].inspect + "\t" + atoms[2].atoms.inspect
-#                puts "Ester-adjacent Carbon" + atoms[3].inspect + "\t" + atoms[3].atoms.inspect
-#                puts "Anionic Oxygen" + atoms.last.inspect + "\t" + atoms.last.atoms.inspect
                 fragment_sets << phosphate_attack_on_ester_carbon(atoms[2], atoms[3], atoms.last, molecule)
               end
-              # molecule.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , opts[:only_uniqs]).each do |molecule| # only one anionic oxygen
+              # molecule.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , opts[:only_uniqs]).each do |atoms| # only one anionic oxygen
               molecule.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])([O-])[O-]" , opts[:only_uniqs]).each do |atoms|
-#                puts "Ester Oxygen" + atoms[2].inspect + "\t" + atoms[2].atoms.inspect
-#                puts "Ester-adjacent Carbon" + atoms[3].inspect + "\t" + atoms[3].atoms.inspect
-#                puts "Anionic Oxygen" + atoms.last.inspect + "\t" + atoms.last.atoms.inspect
                 fragment_sets << phosphate_attack_on_ester_carbon(atoms[2], atoms[3], atoms.last, molecule)
               end
             end
