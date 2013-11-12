@@ -55,8 +55,8 @@ module Rubabel
 
       # Internal attack of a anionic phosphate oxygen upon a carbon (ester)
       # resulting in a cyclized product and loss of a fatty acid
-      def phosphate_attack_on_ester_carbon(leaving_oxygen, attacked_carbon, anionic_oxygen)
-        nmol = self.dup
+      def phosphate_attack_on_ester_carbon(leaving_oxygen, attacked_carbon, anionic_oxygen, molecule = self)
+        nmol = molecule.dup
         #puts "input atoms: #{[leaving_oxygen, attacked_carbon, anionic_oxygen]}"
 
         # initialize product atoms prior to modifications
@@ -128,7 +128,6 @@ module Rubabel
         if opts[:rules].any? {|r| [:cod, :codoo].include?(r) }
           self.each_match("C[O;h1,O]", only_uniqs) do |carbon, oxygen|
             carbon.atoms.select {|a| a.el == :C }.each do |carbon_nbr|
-              puts "COD: #{carbonyl_oxygen_dump(carbon, oxygen, carbon_nbr)}"
               fragment_sets << carbonyl_oxygen_dump(carbon, oxygen, carbon_nbr)
             end
           end
@@ -163,20 +162,20 @@ module Rubabel
         end
         if opts[:rules].any? {|r| [:paoc].include?(r) }
           self.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", only_uniqs).each do |arr|
-            puts "OCCCO SMART search"
-            #self.write_file("paoc/search.svg", add_atom_index: true)
-            puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
-            puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
-            puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
-            fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last)
+#            puts "OCCCO SMART search"
+#            #self.write_file("paoc/search.svg", add_atom_index: true)
+#            puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
+#            puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
+#            puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
+            fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last, molecule)
           end
           self.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , only_uniqs).each do |arr|
-            puts "OCCO SMART search"
+#            puts "OCCO SMART search"
             #self.write_file("paoc/search2.svg", add_atom_index: true)
-            puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
-            puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
-            puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
-            fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last)
+#            puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
+#            puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
+#            puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
+            fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last, molecule)
           end
         end
 
@@ -203,23 +202,21 @@ module Rubabel
         opts = {rules: RearrangementRules, only_uniq: true}.merge(opts)
         fragment_sets = []
         fragment_arrays.flatten(1).map do |sets|
-          sets.molecules.map do |arr|
+          sets.molecules.map do |molecule|
             if opts[:rules].any? {|r| [:paoc].include?(r) }
-              arr.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", opts[:only_uniqs]).each do |arr|
-                puts "OCCCO SMART search"
-                #self.write_file("paoc/search.svg", add_atom_index: true)
-                puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
-                puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
-                puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
-                fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last)
+              # arr.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])[O-]", opts[:only_uniqs]).each do |arr|  # version with only one anionic oxygen
+              molecule.matches("[CX3](=[OX1])[OX2]CCCO-P(=[OX1])([O-])[O-]", opts[:only_uniqs]).each do |atoms|
+#                puts "Ester Oxygen" + atoms[2].inspect + "\t" + atoms[2].atoms.inspect
+#                puts "Ester-adjacent Carbon" + atoms[3].inspect + "\t" + atoms[3].atoms.inspect
+#                puts "Anionic Oxygen" + atoms.last.inspect + "\t" + atoms.last.atoms.inspect
+                fragment_sets << phosphate_attack_on_ester_carbon(atoms[2], atoms[3], atoms.last, molecule)
               end
-              arr.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , opts[:only_uniqs]).each do |arr|
-                puts "OCCO SMART search"
-                #self.write_file("paoc/search2.svg", add_atom_index: true)
-                puts "Ester Oxygen" + arr[2].inspect + "\t" + arr[2].atoms.inspect
-                puts "Ester-adjacent Carbon" + arr[3].inspect + "\t" + arr[3].atoms.inspect
-                puts "Anionic Oxygen" + arr.last.inspect + "\t" + arr.last.atoms.inspect
-                fragment_sets << phosphate_attack_on_ester_carbon(arr[2], arr[3], arr.last)
+              # molecule.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])[O-]" , opts[:only_uniqs]).each do |molecule| # only one anionic oxygen
+              molecule.matches("[CX3](=[OX1])[OX2]CCO-P(=[OX1])([O-])[O-]" , opts[:only_uniqs]).each do |atoms|
+#                puts "Ester Oxygen" + atoms[2].inspect + "\t" + atoms[2].atoms.inspect
+#                puts "Ester-adjacent Carbon" + atoms[3].inspect + "\t" + atoms[3].atoms.inspect
+#                puts "Anionic Oxygen" + atoms.last.inspect + "\t" + atoms.last.atoms.inspect
+                fragment_sets << phosphate_attack_on_ester_carbon(atoms[2], atoms[3], atoms.last, molecule)
               end
             end
           end
