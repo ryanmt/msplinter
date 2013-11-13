@@ -28,26 +28,26 @@ describe Rubabel::Molecule::Fragmentable do
       specify 'cod: primary alcohol' do
         mol = Rubabel["NCC(O)CC"]
         frags = mol.fragment(rules: [:cod])
-        frags.flatten(1).map(&:csmiles).should == ["C[NH3+]", "CCC=O", "C([NH3+])C=O", "CC"]
+        frags.flatten(1).map{|a| a.map(&:csmiles) }.flatten.should == ["C[NH3+]", "CCC=O", "C([NH3+])C=O", "CC"]
       end
 
       specify 'peroxide' do
         mol = Rubabel["NCC(OO)CC"]
         frags = mol.fragment(rules: [:cod])
-        frags.flatten(1).map(&:csmiles).should == ["OC[NH3+]", "CCC=O", "C([NH3+])C=O", "CCO"]
+        frags.flatten(1).map {|a| a.map(&:csmiles)}.flatten.should == ["OC[NH3+]", "CCC=O", "C([NH3+])C=O", "CCO"]
       end
 
       specify 'cod: carboxylate' do
         mol = Rubabel["CCC(=O)O"]
         pieces = mol.fragment(rules: [:cod])
-        pieces.flatten(1).map(&:csmiles).should == ["[CH2-]C", "O=C=O"]
+        pieces.flatten(1).map {|a| a.map(&:csmiles)}.flatten.should == ["[CH2-]C", "O=C=O"]
       end
 
       specify 'cod: carboxylic acid' do
         mol = Rubabel["CCC(=O)O"]
         mol.add_h!(1.5)
         pieces = mol.fragment(rules: [:cod])
-        pieces.flatten(1).map(&:csmiles).should == ["CC", "O=C=O"]
+        pieces.flatten(1).map {|a| a.map(&:csmiles)}.flatten.should == ["CC", "O=C=O"]
       end
       specify "cod sometimes causes a fake product" do 
         # loss of a carbonyl from a glycerophosplipid in the middle of the chain
@@ -64,21 +64,20 @@ describe Rubabel::Molecule::Fragmentable do
         mol = Rubabel["CCOCCN"]
         frag_set = mol.fragment(rules: [:oxe])
         frags = frag_set.first
-        frags.first.csmiles.should == "C[CH2+]"
-        frags.last.csmiles.should == '[O-]CC[NH3+]'
-        frags.first.formula.should == 'C2H5+'
-        frags.last.formula.should == 'C2H7NO'
-        frags.first.exact_mass.should be_within(1e-6).of(29.03912516)
-        frags.last.exact_mass.should be_within(1e-6).of(61.052763849)
+        frags.molecules.first.csmiles.should == "C[CH2+]"
+        frags.molecules.last.csmiles.should == '[O-]CC[NH3+]'
+        frags.molecules.first.formula.should == 'C2H5+'
+        frags.molecules.last.formula.should == 'C2H7NO'
+        frags.molecules.first.exact_mass.should be_within(1e-6).of(29.03912516)
+        frags.molecules.last.exact_mass.should be_within(1e-6).of(61.052763849)
       end
 
       specify 'ester to ions' do
         mol = Rubabel["CCOC(=O)CCN"]
         frag_set = mol.fragment(rules: [:oxe])
-        ff = frag_set.first
+        ff = frag_set.first.molecules
         ff.first.csmiles.should == 'C[CH2+]'
         ff.last.csmiles.should == '[O-]C(=O)CC[NH3+]'
-        ff.first.formula.should == "C2H5+"
 
         ff.last.formula.should == "C3H7NO2"
         ff.first.exact_mass.should be_within(1e-6).of(29.03912516035)
@@ -88,7 +87,7 @@ describe Rubabel::Molecule::Fragmentable do
       specify 'carboxyl group' do
         mol = Rubabel["CCC(=O)O"]
         frag_set = mol.fragment(rules: [:oxe])
-        ff = frag_set.first
+        ff = frag_set.first.molecules
         ff.first.csmiles.should == 'CC[C+]=O'
         # this is a carboxylate oxygen that falls off
         ff.last.csmiles.should == '[O-2]'
@@ -102,7 +101,7 @@ describe Rubabel::Molecule::Fragmentable do
       specify 'phosphodiester' do
         mol = Rubabel["CC(COP(=O)([O-])OCCN"]
         frag_set = mol.fragment(rules: [:oxepd])
-        ff = frag_set.first
+        ff = frag_set.first.molecules
         ff.first.csmiles.should == '[O-]CCC' 
         #ff.last.csmiles.should == '[NH3+]CCO[P](=O)=O'
         ff.last.csmiles.should == "[NH3+]CCOP(=O)=O"
@@ -120,9 +119,9 @@ describe Rubabel::Molecule::Fragmentable do
         # other are allowed to cancel one another out!
         frag_set.size.should == 4
         mols = frag_set.flatten
-        mols.map(&:csmiles).should == ["CC[CH2+]", "[O-]P(=O)(OCC[N+](C)(C)C)[O-]", "CCCOP(=O)([O-])[O-]", "[CH2+]C[N+](C)(C)C", "[O-]CCC", "O=P(=O)OCC[N+](C)(C)C", "CCCOP(=O)=O", "[O-]CC[N+](C)(C)C"]
-        mols.map(&:formula).should == ["C3H7+", "C5H13NO4P-", "C3H7O4P--", "C5H13N++", "C3H7O-", "C5H13NO3P+", "C3H7O3P", "C5H13NO"]
-        mols.map(&:exact_mass).zip([43.05477522449, 182.05821952995, 138.00819533273, 87.10479942171, 59.04968984405, 166.06330491039, 122.01328071317, 103.09971404127]) do |act, exp|
+        mols.map{|a| a.map(&:csmiles)}.flatten.should == ["CC[CH2+]", "[O-]P(=O)(OCC[N+](C)(C)C)[O-]", "CCCOP(=O)([O-])[O-]", "[CH2+]C[N+](C)(C)C", "[O-]CCC", "O=P(=O)OCC[N+](C)(C)C", "CCCOP(=O)=O", "[O-]CC[N+](C)(C)C"]
+        mols.map{|a| a.map(&:formula)}.flatten.should == ["C3H7+", "C5H13NO4P-", "C3H7O4P--", "C5H13N++", "C3H7O-", "C5H13NO3P+", "C3H7O3P", "C5H13NO"]
+        mols.map{|a| a.map(&:exact_mass)}.flatten.zip([43.05477522449, 182.05821952995, 138.00819533273, 87.10479942171, 59.04968984405, 166.06330491039, 122.01328071317, 103.09971404127]) do |act, exp|
           act.should be_within(1e-6).of(exp)
         end
 
@@ -135,10 +134,10 @@ describe Rubabel::Molecule::Fragmentable do
       specify 'primary alcohol giving water loss' do
         mol = Rubabel["CC(O)CCN"]
         frags = mol.fragment(rules: [:oxh])
-        ff = frags.first
+        ff = frags.first.molecules
         ff.first.csmiles.should == 'C=CCC[NH3+]'
         ff.last.csmiles.should == 'O'
-        ll = frags.last
+        ll = frags.last.molecules
         ll.first.csmiles.should == 'CC=CC[NH3+]'
         ll.last.csmiles.should == 'O'
         #ff.first.formula.should == 'C4H10N'
@@ -152,7 +151,7 @@ describe Rubabel::Molecule::Fragmentable do
         # rules.  Can prohibit peroxide formation in future if necessary...
         mol = Rubabel["CC(OO)CCN"]
         frags = mol.fragment(rules: [:oxh])
-        mols = frags.flatten
+        mols = frags.flatten.map(&:molecules).flatten
         mols.map(&:csmiles).should == ["C=CCC[NH3+]", "OO", "CC(=O)CC[NH3+]", "O", "CC=CC[NH3+]", "OO"]
         mols.map(&:formula).should == ["C4H10N+", "H2O2", "C4H10NO+", "H2O", "C4H10N+", "H2O2"]
         #mols.map(&:formula).should == ["C4H10N", "H2O2", "C4H10NO", "H2O", "C4H10N", "H2O2"]
@@ -167,24 +166,24 @@ describe Rubabel::Molecule::Fragmentable do
         mol = Rubabel["CCOCCN"]
         frags = mol.fragment(rules: [:oxh], errors: :ignore)
         mols = frags.flatten
-        mols.map(&:csmiles).should == ["C=C", "OCC[NH3+]", "CCO", "C=C[NH2+]"]
+        mols.map{|a| a.map(&:csmiles)}.flatten.should == ["C=C", "OCC[NH3+]", "CCO", "C=C[NH2+]"]
       end
 
       specify 'ether to alcohol, removing errors' do
         mol = Rubabel["CCOCCN"]
         frags = mol.fragment(rules: [:oxh])
         mols = frags.flatten
-        mols.map(&:csmiles).should == ["C=C", "OCC[NH3+]"]
+        mols.map{|a| a.map(&:csmiles)}.flatten.should == ["C=C", "OCC[NH3+]"]
       end
 
       specify 'ester to alcohol' do
         mol = Rubabel["CC(=O)OCCCN"]
         frags = mol.fragment(rules: [:oxh])
         mols = frags.flatten
-        mols.map(&:csmiles).should == ["C=C=O", "OCCC[NH3+]", "CC(=O)O", "C=CC[NH3+]"]
+        mols.map{|a| a.map(&:csmiles)}.flatten.should == ["C=C=O", "OCCC[NH3+]", "CC(=O)O", "C=CC[NH3+]"]
         #mols.map(&:formula).should == ["C2H2O", "C3H10NO", "C2H4O2", "C3H8N"]
-        mols.map(&:formula).should == ["C2H2O", "C3H10NO+", "C2H4O2", "C3H8N+"]
-        mols.map(&:exact_mass).zip([42.010564684, 76.076238945, 60.021129368000004, 58.065674261]) do |act,exp|
+        mols.map{|a| a.map(&:formula)}.flatten.should == ["C2H2O", "C3H10NO+", "C2H4O2", "C3H8N+"]
+        mols.map{|a| a.map(&:exact_mass)}.flatten.zip([42.010564684, 76.076238945, 60.021129368000004, 58.065674261]) do |act,exp|
           act.should be_within(1e-6).of(exp)
         end
       end
@@ -194,7 +193,7 @@ describe Rubabel::Molecule::Fragmentable do
         mol.add_h!(1.0)
         frags = mol.fragment(rules: [:oxhpd])
         frags = frags.flatten
-        frags.map(&:csmiles).should == ["CCCO", "[NH3+]CCCOP(=O)=O", "CCCOP(=O)=O", "OCCC[NH3+]"]
+        frags.map{|a| a.map(&:csmiles)}.flatten.should == ["CCCO", "[NH3+]CCCOP(=O)=O", "CCCOP(=O)=O", "OCCC[NH3+]"]
       end
     end
 

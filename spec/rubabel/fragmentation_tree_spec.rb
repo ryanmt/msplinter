@@ -22,7 +22,7 @@ describe Rubabel::FragmentTree do
   end
   it "handles ms2" do 
     resp = @a.ms2(rules: [:cod])
-    resp.should == Rubabel[$molecule_test_string, :lmid].fragment(rules: [:cod])
+    resp.map{|arr| arr.map(&:csmiles) }.flatten.should == Rubabel[$molecule_test_string, :lmid].fragment(rules: [:cod]).map {|arr| arr.map(&:csmiles) }.flatten
   end
   it "handles ms3 for everything" do 
     pending 
@@ -41,8 +41,7 @@ describe Rubabel::FragmentTree do
   end
   it "it traverses the stack, in order to perform all possible fragmentations" do 
     resp = @a.msn
-    @a.molecule.mol_wt
-    resp.flatten.compact.map(&:mol_wt).sort.uniq
+    resp.flatten.compact.map{|a| a.map(&:mol_wt)}.flatten.sort.uniq
   end
   it "Doesn't create the false product from this lipid test case (loss of a carbonyl from a glycerophosplipid in the middle of the chain" do
     @a.ms2.include?(Rubabel["[C@@H](P(=O)([O-])OC[C@@H](O)CO)(OC(=O)CCCCCCCCCCCCCCC)COC(=O)CCCCCCC/C=C\\CCCCCCCC"]).should be_false
